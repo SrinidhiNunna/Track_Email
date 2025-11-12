@@ -166,4 +166,4 @@ app.get('/click/:token', async (req, res) => {
 const PORT = process.env.PORT || 4000; // 👈 UPDATED: Good for deployment
 const HOST = '0.0.0.0'; // 👈 UPDATED: Good for deployment
 
-app.listen(PORT, HOST, () => console.log(`✅ Server running at http://localhost:${PORT}/dashboard`));
+app.listen(PORT, HOST, () => console.log(`✅ Server running at ${BASE_URL}/dashboard`));

@@ -2,6 +2,7 @@ import 'dotenv/config'; // 👈 ADD THIS: Reads your .env file
 import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
 import { v4 as uuidv4 } from 'uuid';
+import { Resend } from 'resend';
 
 // 👇 UPDATED: Connects to Aiven using .env variables
 const pool = mysql.createPool({
@@ -129,27 +130,27 @@ async function generateEmailHtml(email, name) {
   `;
 }
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// 👇 UPDATED: Reads Gmail credentials from .env
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
-  }
-});
 
-// Send single email
 export async function sendEmail(toEmail, name) {
   const html = await generateEmailHtml(toEmail, name);
-  await transporter.sendMail({
-    from: `"Your Company" <${process.env.GMAIL_USER}>`,
-    to: toEmail,
-    subject: 'Your Special Content Awaits',
-    html
-  });
-  console.log(`✅ Sent email to ${toEmail}`);
+  
+  try {
+    await resend.emails.send({
+      // NOTE: Resend's free tier only lets you send from 'onboarding@resend.dev'
+      from: 'Your Company <onboarding@resend.dev>',
+      to: toEmail,
+      subject: 'Your Special Content Awaits',
+      html: html
+    });
+    console.log(`✅ Sent email to ${toEmail}`);
+  } catch (err) {
+    console.error(`❌ Failed for ${toEmail}:`, err.message);
+    throw err; // Re-throw the error so sendAllEmails can see it
+  }
 }
+
 
 // Send all emails in DB
 export async function sendAllEmails() {
